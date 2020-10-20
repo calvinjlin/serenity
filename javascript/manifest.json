@@ -2,10 +2,24 @@
   "name": "YTList",
   "version": "1.0",
   "description": "Build an Extension!",
-  "permissions": ["storage"],
+  "permissions": [
+    "identity",
+    "*://www.googleapis.com/*",
+    "*://accounts.google.com/*"
+  ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background/authorize.js",
+      "background/userinfo.js",
+      "background/main.js"
+    ]
   },
+
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": "images/get_started16.png"
+  },
+
   "page_action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -28,5 +42,10 @@
     "48": "images/get_started48.png",
     "128": "images/get_started128.png"
   },
+
+  "options_ui": {
+    "page": "options/options.html"
+  },
+
   "manifest_version": 2
 }
