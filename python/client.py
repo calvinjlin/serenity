@@ -13,7 +13,7 @@ import googleapiclient.errors
 
 scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
-def generate_credentials(client_secrets_file='client_secret.json'):
+def generate_credentials(client_secrets_file='python/client_secret.json'):
     """ Get credentials """
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
             client_secrets_file, scopes)
@@ -22,7 +22,7 @@ def generate_credentials(client_secrets_file='client_secret.json'):
     return credentials
 
     
-def get_credentials(filename='credentials.pkl'):
+def get_credentials(filename='python/credentials.pkl'):
     if os.path.exists(filename):
         return pickle.load(open(filename,'rb'))
     else:
