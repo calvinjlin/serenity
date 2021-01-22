@@ -1,3 +1,4 @@
 .spyproject
 credentials.pkl
 client_secret.json
+.vscode/
