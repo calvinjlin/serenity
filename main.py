@@ -12,6 +12,8 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 
+import pandas as pd
+
 # class YTDataBase:
 #     def __init__(self):
         
@@ -49,7 +51,8 @@ class YTConnector:
 
         def request(nextPageToken=None, **kwargs):
             request = self._youtube.playlists().list(
-                part="contentDetails,id,localizations,snippet,status",
+                # part="contentDetails,id,localizations,snippet,status",
+                part="id,snippet",
                 maxResults=50,
                 pageToken=nextPageToken,
                 id=id,
@@ -79,16 +82,27 @@ class YTConnector:
         # YouTube has some nested items such as 'privacyStatus' within 'status',
         # here we unnest them
         for playlist in playlists:
-            playlist.update(playlist.pop('contentDetails'))
-            playlist.update(playlist.pop('status'))
+            # playlist.update(playlist.pop('contentDetails'))
+            # playlist.update(playlist.pop('status'))
             playlist.update(playlist.pop('snippet'))
+        
+        # for playlist in playlists:
+            # print(f'{playlist["id"]} {playlist["title"]} ({playlist["privacyStatus"]},{playlist["itemCount"]} items)')
+        playlists = [{'id':playlist['id'],'title':playlist['title']} for playlist in playlists]
+        playlists = pd.DataFrame(playlists)
         return playlists
     
     def items_in_list(self, id):
         request = self._youtube.playlistItems().list(
-            part="contentDetails,id,snippet,status",
+            # part="contentDetails,id,snippet,status",
+            part="snippet",
             playlistId=id
         )
+        videos = request.execute()['items']
+        videos = [video['snippet'] for video in videos]
+        videos = [{'id':video['resourceId']['videoId'], 'title':video['title']} for video in videos]
+        videos = pd.DataFrame(videos)
+        return videos
 
     def __getattr__(self, item):
         func = getattr(self._youtube, item)
@@ -100,5 +114,6 @@ def main():
 
 if __name__ == "__main__":
     yt = main()
-    code.interact(local=locals())
-    print(yt)
+    lists = yt.list_playlists()
+    vid = yt.items_in_list(lists['id'][0])
+    #code.interact(local=locals())
