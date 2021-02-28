@@ -14,9 +14,6 @@ import googleapiclient.errors
 import logging
 
 import pandas as pd
-
-# class YTDataBase:
-#     def __init__(self):
         
 class YTConnector:
     def __init__(self) -> None:
@@ -52,8 +49,8 @@ class YTConnector:
 
         def request(nextPageToken=None, **kwargs):
             request = self._youtube.playlists().list(
-                # part="contentDetails,id,localizations,snippet,status",
-                part="id,snippet",
+                part="contentDetails,id,localizations,snippet,status",
+                #part="id,snippet",
                 maxResults=50,
                 pageToken=nextPageToken,
                 id=id,
@@ -83,38 +80,62 @@ class YTConnector:
         # YouTube has some nested items such as 'privacyStatus' within 'status',
         # here we unnest them
         for playlist in playlists:
-            # playlist.update(playlist.pop('contentDetails'))
-            # playlist.update(playlist.pop('status'))
+            playlist.update(playlist.pop('contentDetails'))
+            playlist.update(playlist.pop('status'))
             playlist.update(playlist.pop('snippet'))
         
-        # for playlist in playlists:
-            # print(f'{playlist["id"]} {playlist["title"]} ({playlist["privacyStatus"]},{playlist["itemCount"]} items)')
-        playlists = [{'id':playlist['id'],'title':playlist['title']} for playlist in playlists]
         playlists = pd.DataFrame(playlists)
         return playlists
     
-    def items_in_list(self, id):
-        request = self._youtube.playlistItems().list(
-            # part="contentDetails,id,snippet,status",
-            part="snippet",
-            playlistId=id
-        )
-        videos = request.execute()['items']
-        videos = [video['snippet'] for video in videos]
-        videos = [{'id':video['resourceId']['videoId'], 'title':video['title']} for video in videos]
+    def list_playlistitems(self, id):
+        def request(nextPageToken=None):
+            request = self._youtube.playlistItems().list(
+                part="contentDetails,id,snippet,status",
+                playlistId=id,
+                maxResults=50,
+                pageToken=nextPageToken
+            )
+            responses = request.execute()
+            return responses
+        
+        nextPageToken=None
+        videos=[]
+        while True:
+            response = request(nextPageToken=nextPageToken)
+            videos+=response['items']
+            
+            try:
+                nextPageToken = response['nextPageToken']
+            except:
+                break
+        
+        for video in videos:
+            video.update(video.pop('contentDetails'))
+            video.update(video.pop('status'))
+            video.update(video.pop('snippet'))
+            video.update(video.pop('resourceId'))
         videos = pd.DataFrame(videos)
         return videos
 
-    def __getattr__(self, item):
-        func = getattr(self._youtube, item)
-        return func
-        
+    # def __getattr__(self, item):
+    #     func = getattr(self._youtube, item)
+    #     return func
+
+class Serenity:
+    def __init__(self):
+        ytc = YTConnector()
+        self.playlists = ytc.list_playlists()
+        self.videos = pd.concat(ytc.list_playlistitems(playlist) for playlist in self.playlists['id'])        
+        pass
+    
+
 def main():
     yt = YTConnector()
     return yt
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, filename='myapp.log', format='%(asctime)s %(levelname)s:%(message)s')
+    serenity = Serenity()
     yt = main()
     lists = yt.list_playlists()
     try:
@@ -122,4 +143,4 @@ if __name__ == "__main__":
     except:
         logging.error("Error getting access to a single playlist")
 
-    #code.interact(local=locals())
+    code.interact(local=locals())
