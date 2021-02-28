@@ -114,11 +114,12 @@ def main():
     return yt
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, filename='myapp.log', format='%(asctime)s %(levelname)s:%(message)s')
     yt = main()
     lists = yt.list_playlists()
     try:
         vid = yt.items_in_list(lists['id'][0])
     except:
-        logger.error("Error getting access to a single playlist")
+        logging.error("Error getting access to a single playlist")
 
     #code.interact(local=locals())
