@@ -11,6 +11,7 @@ import pickle
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
+import logging
 
 import pandas as pd
 
@@ -115,5 +116,9 @@ def main():
 if __name__ == "__main__":
     yt = main()
     lists = yt.list_playlists()
-    vid = yt.items_in_list(lists['id'][0])
+    try:
+        vid = yt.items_in_list(lists['id'][0])
+    except:
+        logger.error("Error getting access to a single playlist")
+
     #code.interact(local=locals())
